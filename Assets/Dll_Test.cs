@@ -18,6 +18,39 @@ public class Dll_Test : MonoBehaviour {
     public static extern void VRsenal_RumbleOn();
 
 
+    [DllImport("GUN_BLE")]
+    public static extern void VRsenal_GameContinue();
+
+
+    [DllImport("GUN_BLE")]
+    public static extern void VRsenal_RumbleOff();
+
+
+    [DllImport("GUN_BLE")]
+    public static extern void VRsenal_InitHaptic(string audioDeviceName);
+
+
+    [DllImport("GUN_BLE")]
+    public static extern void VRsenal_Shutdown();
+
+
+    [DllImport("GUN_BLE")]
+    public static extern void VRsenal_DisconnectFromBluetooth();
+
+
+
+    [DllImport("GUN_BLE")]
+    public static extern void VRsenal_CloseCOMPort();
+
+
+
+
+
+    [DllImport("GUN_BLE")]
+    public static extern void VRsenal_MatchEnd(int score, bool success, string stats);
+
+
+
 
     [DllImport("GUN_BLE")]
     public static extern void VRsenal_HapticEvent(string name);
@@ -41,6 +74,9 @@ public class Dll_Test : MonoBehaviour {
     public static extern void DoWork([MarshalAs(UnmanagedType.FunctionPtr)] UpdateCallback callbackPointer);
 
 
+    //Delegate setup for logging X data from dll
+    UpdateCallback test_callback;
+
 
 
     /*  Modified logger  */
@@ -58,6 +94,8 @@ public class Dll_Test : MonoBehaviour {
     public static extern void DoLog([MarshalAs(UnmanagedType.FunctionPtr)] LoggerCallback callbackPointer);
 
 
+    //Delegate setup for logging X data from dll
+    LoggerCallback logger_callback;
 
 
 
@@ -72,9 +110,7 @@ public class Dll_Test : MonoBehaviour {
     public static extern void SetDebugFunction(IntPtr fp);
 
 
-    //Delegate setup for logging data from dll
-    UpdateCallback test_callback;
-
+    
 
     /*
     //JOYSTICK
@@ -136,15 +172,7 @@ public class Dll_Test : MonoBehaviour {
 
 
 
-        //VRSENAL RUMBLEON EVENT WITH INPUT PARAMETER
-        VRsenal_RumbleOn();
-
-
-
-        //VRSENAL HAPTIC EVENT WITH INPUT PARAMETER
-        VRsenal_HapticEvent("x");
-
-
+    
 
         /////////////
         //Custom callback of getting the integer value x from dll
@@ -161,28 +189,87 @@ public class Dll_Test : MonoBehaviour {
 
 
 
+        logger_callback =
+(value) =>
+{
+
+        //Console.WriteLine("Progress = {0}", value);
+
+        if(value!="")
+        Debug.Log("Update from LoggerCallBack = " + value);
+
+};
+
+
+
 
         // call DoWork in C code
         //DoWork(test_callback);
         //////////////////
 
 
-  
-     //   VRsenal_Update(x,x,x,x,false,g,false);
 
-
-
-
-
-    }
+        //   VRsenal_Update(x,x,x,x,false,g,false);
 
 
 
 
 
 
+        //VRSENAL RUMBLEON EVENT WITH INPUT PARAMETER
+        VRsenal_RumbleOn();
 
-    static void CallBackFunction(StringBuilder str)
+
+
+
+        //VRSENAL HAPTIC EVENT WITH INPUT PARAMETER
+        VRsenal_HapticEvent("h");
+
+
+
+
+      VRsenal_GameContinue();
+
+
+     VRsenal_RumbleOff();
+
+
+     VRsenal_InitHaptic("x");
+
+
+     VRsenal_Shutdown();
+
+
+     VRsenal_DisconnectFromBluetooth();
+
+
+
+     VRsenal_CloseCOMPort();
+
+
+
+
+
+     VRsenal_MatchEnd(5, false, "y");
+
+
+
+
+     VRsenal_HapticEvent("z");
+
+
+
+
+
+}
+
+
+
+
+
+
+
+static void CallBackFunction(StringBuilder str)
     {
         Debug.Log(":: DLL LOG : " + str);
     }
@@ -191,11 +278,14 @@ public class Dll_Test : MonoBehaviour {
     // Update is called once per frame
     void Update () {
 
-        
+
 
         //Continous callback function from dll
-        DoWork(test_callback);
+        //  DoWork(test_callback);
 
+//        VRsenal_HapticEvent("h");
+
+        
 
     }
 }
