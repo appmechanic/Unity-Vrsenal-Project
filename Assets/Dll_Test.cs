@@ -56,6 +56,13 @@ public class Dll_Test : MonoBehaviour {
     public static extern void VRsenal_HapticEvent(string name);
 
 
+    [DllImport("GUN_BLE")]
+    public static extern bool VRsenal_TestJoystickStruct(Joystick lowerLeft, Joystick lowerRight,
+        Joystick upperLeft,
+        Joystick upperRight,
+        bool trigger,
+        GameStartAt startAt,
+        bool requestShutdown);
 
 
 
@@ -79,23 +86,28 @@ public class Dll_Test : MonoBehaviour {
 
 
 
+
+
     /*  Modified logger  */
 
     /* A simple delegate callback setup where we continously retrieve X which is incremented from server */
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    public delegate void LoggerCallback(string value);
-
-
+    public delegate void Vrsenal_update_Callback(Joystick lowerLeft, Joystick lowerRight,
+    Joystick upperLeft,
+    Joystick upperRight,
+    bool trigger,
+    GameStartAt startAt,
+    bool requestShutdown);
 
 
     /*Actual work function for the callback*/
     [DllImport("GUN_BLE")]
-    public static extern void DoLog([MarshalAs(UnmanagedType.FunctionPtr)] LoggerCallback callbackPointer);
+    public static extern void UpdateVrsenal([MarshalAs(UnmanagedType.FunctionPtr)] Vrsenal_update_Callback callbackPointer);
 
 
     //Delegate setup for logging X data from dll
-    LoggerCallback logger_callback;
+    Vrsenal_update_Callback vrsenal_update_callback;
 
 
 
@@ -110,14 +122,18 @@ public class Dll_Test : MonoBehaviour {
     public static extern void SetDebugFunction(IntPtr fp);
 
 
+
     
 
-    /*
+
     //JOYSTICK
+
+
+//    [StructLayout(LayoutKind.Sequential)]
     public struct Joystick
     {
-       
-        Joystick(float _x, float _y, bool _button)
+
+        public Joystick(float _x, float _y, bool _button)
         {
             X = _x; Y = _y; selectButton = _button;
         }
@@ -127,6 +143,7 @@ public class Dll_Test : MonoBehaviour {
         float Len() { return Mathf.Sqrt(X * X + Y * Y); }
     };
 
+    [StructLayout(LayoutKind.Sequential)]
     public struct GameStartAt
     {
         int level;
@@ -134,28 +151,54 @@ public class Dll_Test : MonoBehaviour {
         int timeLimit;
     };
 
-
+    public struct Ref_Bool
+    {
+       public bool val;
+    }
 
 
 
     [DllImport("GUN_BLE")]
-    public static extern bool VRsenal_Update(Joystick lowerLeft, Joystick lowerRight,
-        Joystick upperLeft,
-        Joystick upperRight,
-        bool trigger,
-        GameStartAt startAt,
-        bool requestShutdown);
+    public static extern bool VRsenal_Update(ref  Joystick lowerLeft, ref Joystick lowerRight,
+      ref Joystick upperLeft,
+      ref Joystick upperRight,
+      ref System.Boolean trigger,
+     ref GameStartAt startAt,
+     ref System.Boolean requestShutdown);
 
-    Joystick x;
-    GameStartAt g;
-        */
 
+
+
+      Joystick lowerleft, upperleft, lowerright, upperright;
+
+    GameStartAt startAt_ref;
+
+
+ //   System.Boolean req_shutdown_ref = false;
+
+//    System.Boolean trigger_ref = false;
+
+    Ref_Bool trigger_ref;
+
+    Ref_Bool req_shutdown_ref;
+
+
+
+    object req_shut_obj;
 
 
     // Use this for initialization
     void Start () {
 
 
+        trigger_ref = new Ref_Bool();
+
+        req_shutdown_ref = new Ref_Bool();
+
+
+        
+
+        //   g_sample = new GameStartAt();
 
 
         // Custom callback logging setup from dll to unity
@@ -189,14 +232,13 @@ public class Dll_Test : MonoBehaviour {
 
 
 
-        logger_callback =
-(value) =>
+        vrsenal_update_callback = (j_lower_left, j_lower_right, j_upper_left, j_upper_right, trigger, startAt, req_shutdown) =>
 {
 
         //Console.WriteLine("Progress = {0}", value);
 
-        if(value!="")
-        Debug.Log("Update from LoggerCallBack = " + value);
+       // if(value!="")
+        Debug.Log("Update from VrsenalCallBack = ");
 
 };
 
@@ -209,7 +251,8 @@ public class Dll_Test : MonoBehaviour {
 
 
 
-        //   VRsenal_Update(x,x,x,x,false,g,false);
+     
+
 
 
 
@@ -255,21 +298,23 @@ public class Dll_Test : MonoBehaviour {
 
 
 
-     VRsenal_HapticEvent("z");
+         VRsenal_HapticEvent("z");
 
 
 
+    //    VRsenal_Update(ref lowerleft, ref lowerright, ref upperleft, ref upperright, ref trigger_ref.val, ref startAt_ref, ref req_shutdown_ref.val);
+
+      
+       
+
+      
+
+    }
 
 
-}
+ 
 
-
-
-
-
-
-
-static void CallBackFunction(StringBuilder str)
+    static void CallBackFunction(StringBuilder str)
     {
         Debug.Log(":: DLL LOG : " + str);
     }
@@ -283,9 +328,17 @@ static void CallBackFunction(StringBuilder str)
         //Continous callback function from dll
         //  DoWork(test_callback);
 
-//        VRsenal_HapticEvent("h");
+        //        UpdateVrsenal(vrsenal_update_callback);
 
-        
+
+
+
+        //        VRsenal_HapticEvent("h");
+
+
+
+        VRsenal_Update(ref lowerleft, ref lowerright, ref upperleft, ref upperright, ref trigger_ref.val, ref startAt_ref, ref req_shutdown_ref.val);
+
 
     }
 }
